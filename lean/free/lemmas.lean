@@ -35,3 +35,6 @@ lemma subst_zero_free {e x v} :
 begin
   sorry
 end
+
+lemma count_correct (v : string) (e : exp) {n} : 
+  free v n e ↔ count_free v e = n := sorry
