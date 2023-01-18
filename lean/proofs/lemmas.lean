@@ -1,4 +1,4 @@
-import ..compiler ..semantics ..syntax ..lovelib ..free
+import ..compiler ..semantics ..syntax ..lovelib ..free.free
 
 open big_step vm_big_step env_big_step val bin_op exp instruction free
 
@@ -127,63 +127,18 @@ begin
   exact h
 end
 
-lemma zero_free_subst_id {e x v} :
-  free x 0 e → subst v x e = e :=
-begin
-  assume h,
-  induction' h,
-  case FZero { rw subst },
-  case FOp { 
-    rw subst,
-    have hnz : n = 0 := by linarith,
-    have hmz : m = 0 := by linarith,
-    rw [ih_h hnz, ih_h_1 hmz] },
-  case FIf {
-    rw subst,
-    have hnz : n = 0 := by linarith,
-    have hmz : m = 0 := by linarith,
-    have hkz : k = 0 := by linarith,
-    rw [ih_h hnz, ih_h_1 hmz, ih_h_2 hkz]
-  },
-  case FLet {
-    rw [subst],
-    rw if_neg (ne.symm h),
-    have hnz : n = 0 := by linarith,
-    have hmz : m = 0 := by linarith,
-    rw [ih_h_1 hnz, ih_h_2 hmz]
-  },
-  case FLetShdw {
-    rw [subst, if_pos (eq.symm h), ih]
-  }
-end
-
-lemma subst_zero_free {e x v} : 
-  free x 0 (subst v x e) :=
-begin
-  sorry
-end
-
 lemma open_extra_bind {E e x v n S R} : 
     free x n e
   → (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R :=
-begin
-  sorry
-end
+  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R := sorry
 
 lemma close_extra_bind {E E' P x v S S'} :
     (E, P, S) ⟹ₙᵥ (⟨x, v⟩ :: E', S')
-  → (E, P ++ [ICloseScope], S) ⟹ₙᵥ (E', S') :=
-sorry
+  → (E, P ++ [ICloseScope], S) ⟹ₙᵥ (E', S') := sorry
 
 lemma extra_bind {E e x v S R} :
     (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R :=
-begin
-assume h, 
-sorry
---open_extra_bind h (count_free x e)
-end
+  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R := sorry
 
 lemma subst_extra_bind {E e x v S R} :
     (E, compile (subst v x e), S) ⟹ₙᵥ R
