@@ -1,6 +1,6 @@
-import ..compiler ..semantics ..syntax ..lovelib
+import ..compiler ..semantics ..syntax ..lovelib ..free
 
-open big_step vm_big_step env_big_step val bin_op exp instruction
+open big_step vm_big_step env_big_step val bin_op exp instruction free
 
 -- env_big_step implies vm_big_step
 lemma env_vm_big_step {env env' P S R} :
@@ -118,27 +118,6 @@ begin
   exact h
 end
 
-lemma vm_subst_distr {E P₁ P₂ x v S R} : 
-    (E, vm_subst v x P₁ ++ vm_subst v x P₂, S) ⟹ₙᵥ R
-  → (E, vm_subst v x (P₁ ++ P₂), S) ⟹ₙᵥ R :=
-begin
-  assume h,
-  induction' P₁,
-  { exact h },
-  { sorry }
-end
-
-lemma subst_conv {E e x v S R} :
-    (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → (E, vm_subst v x (compile e), S) ⟹ₙᵥ R :=
-begin
-  sorry
-end
-
-lemma extra_bind {E e x v S R} :
-    (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R := sorry
-
 lemma open_scope_rev {E e x v S R} :
     (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R 
   → ((x, v) :: E, compile e ++ [ICloseScope], S) ⟹ₙᵥ R :=
@@ -148,11 +127,47 @@ begin
   exact h
 end
 
-lemma open_extra_bind {E E' e x v S S'} :
-    (E, compile (subst v x e), S) ⟹ₙᵥ (E', S')
-  → (⟨x, v⟩ :: E, compile e, v :: S) ⟹ₙᵥ (⟨x, v⟩ :: E', S') :=
+lemma zero_free_subst_id {e x v} :
+  free x 0 e → subst v x e = e :=
 begin
   assume h,
+  induction' h,
+  case FZero { rw subst },
+  case FOp { 
+    rw subst,
+    have hnz : n = 0 := by linarith,
+    have hmz : m = 0 := by linarith,
+    rw [ih_h hnz, ih_h_1 hmz] },
+  case FIf {
+    rw subst,
+    have hnz : n = 0 := by linarith,
+    have hmz : m = 0 := by linarith,
+    have hkz : k = 0 := by linarith,
+    rw [ih_h hnz, ih_h_1 hmz, ih_h_2 hkz]
+  },
+  case FLet {
+    rw [subst],
+    rw if_neg (ne.symm h),
+    have hnz : n = 0 := by linarith,
+    have hmz : m = 0 := by linarith,
+    rw [ih_h_1 hnz, ih_h_2 hmz]
+  },
+  case FLetShdw {
+    rw [subst, if_pos (eq.symm h), ih]
+  }
+end
+
+lemma subst_zero_free {e x v} : 
+  free x 0 (subst v x e) :=
+begin
+  sorry
+end
+
+lemma open_extra_bind {E e x v n S R} : 
+    free x n e
+  → (E, compile (subst v x e), S) ⟹ₙᵥ R
+  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R :=
+begin
   sorry
 end
 
@@ -160,6 +175,15 @@ lemma close_extra_bind {E E' P x v S S'} :
     (E, P, S) ⟹ₙᵥ (⟨x, v⟩ :: E', S')
   → (E, P ++ [ICloseScope], S) ⟹ₙᵥ (E', S') :=
 sorry
+
+lemma extra_bind {E e x v S R} :
+    (E, compile (subst v x e), S) ⟹ₙᵥ R
+  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R :=
+begin
+assume h, 
+sorry
+--open_extra_bind h (count_free x e)
+end
 
 lemma subst_extra_bind {E e x v S R} :
     (E, compile (subst v x e), S) ⟹ₙᵥ R
