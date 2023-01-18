@@ -21,6 +21,3 @@ inductive free (x : string) : ℕ → exp → Prop
 open free
 
 def count_free (x : string) : exp → ℕ := sorry
-
-lemma count_correct (v : string) (e : exp) {n} : 
-  free v n e ↔ count_free v e = n := sorry
