@@ -1,4 +1,4 @@
-import .syntax
+import .syntax .lovelib
 
 open val bin_op exp instruction
 
@@ -11,10 +11,12 @@ def eval (n m : ℕ) : ∀ (op : bin_op), val
 
 def subst (v : val) (x : string) : exp → exp
 |   (EVar y) := if x = y then (EVal v) else (EVar y)
-| l@(ELet y e body) := if x = y then l else ELet y (subst e) (subst body)
-|   (EIf c t e) := EIf (subst c) (subst t) (subst e)
-|   (EOp op e₁ e₂) := EOp op (subst e₁) (subst e₂)
-|   (EVal v) := (EVal v)
+| l@(ELet y e body) :=
+      if x = y then ELet y (subst e) body
+      else ELet y (subst e) (subst body)
+| (EIf c t e) := EIf (subst c) (subst t) (subst e)
+| (EOp op e₁ e₂) := EOp op (subst e₁) (subst e₂)
+| (EVal v) := (EVal v)
 
 def vm_subst' (v : val) (x : string)
   : list string → list instruction → list instruction
@@ -26,28 +28,6 @@ def vm_subst' (v : val) (x : string)
 
 def vm_subst (v : val) (x : string)
   : list instruction → list instruction := vm_subst' v x []
-
-inductive substitute (v : val) (x : string) : exp → exp → Prop
-| SubVarEq : substitute (EVar x) (EVal v)
-| SubVarNe {y} : y ≠ x → substitute (EVar y) (EVar y)
-| SubVal {v} : substitute (EVal v) (EVal v)
-| SubOp {op e e' f f'} :
-    substitute e e'
-  → substitute f f'
-  → substitute (EOp op e f) (EOp op e' f')
-| SubIf {c c' t t' f f'} :
-    substitute c c'
-  → substitute t t'
-  → substitute f f'
-  → substitute (EIf c t f) (EIf c' t' f')
-| SubLet {x y : string} {e e' body body'} :
-    x ≠ y
-  → substitute e e'
-  → substitute body body'  
-  → substitute (ELet y e body) (ELet y e' body')
-| SubLetShadow {x : string} {e e' body} :
-    substitute e e'
-  → substitute (ELet x e body) (ELet x e' body)
 
 inductive big_step : exp → val → Prop
 | RunVal {v} : big_step (EVal v) v
