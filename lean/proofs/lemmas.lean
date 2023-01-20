@@ -1,6 +1,6 @@
-import ..compiler ..semantics ..syntax ..lovelib ..free.free
+import ..syntax .decidability
 
-open big_step vm_big_step env_big_step val bin_op exp instruction free
+open big_step vm_big_step env_big_step val bin_op exp instruction
 
 -- env_big_step implies vm_big_step
 lemma env_vm_big_step {env env' P S R} :
@@ -144,7 +144,27 @@ begin
     exact h }
 end
 
-lemma 
+lemma eq_if_bound_to_same_name {x v u env} : 
+    bound x v env → bound x u env 
+  → v = u :=
+begin
+  assume h1 h2,
+  induction' env,
+  case nil { cases' h1 },
+  case cons {
+    apply dite (hd = ⟨x, v⟩),
+  }
+end
+
+lemma bound_lookup {E x v P S R} : 
+    bound x v E
+  → (E, ILookup x :: P, S) ⟹ₙᵥ R
+  → (E, P, v :: S) ⟹ₙᵥ R :=
+begin
+  assume hbound heval,
+  cases' heval,
+  sorry
+end
 
 lemma vm_subst_eq : ∀ v x P,
     vm_subst' v x [] P = vm_subst v x P :=
@@ -176,8 +196,22 @@ begin
         rw if_neg hne at ⊢ h,
         rw [vm_subst_eq, vm_subst_eq],
         apply dite (∃ v, bound s v E),
-        sorry, sorry
-         }
+        {
+          assume hex,
+          cases' hex,
+          apply ERunLookup h_1,
+          cases' h,
+          apply ih h,
+        },
+        {
+          assume hnex,
+          cases' h,
+          apply false.elim,
+          apply hnex,
+          apply exists.intro,
+          exact _x
+        }
+        }
     },
 
   }
