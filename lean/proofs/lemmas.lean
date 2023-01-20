@@ -110,7 +110,7 @@ begin
 end
 
 lemma interm_result_nil
-  {P₁ P₂ : list instruction} {S I : list val} {E₁ E₂ Eᵢ R} :
+  {P₁ P₂ S I E₁ E₂ Eᵢ R} :
     (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
   → (Eᵢ, P₂, I) ⟹ₙᵥ (E₂, R)
   → (E₁, P₁ ++ P₂, S) ⟹ₙᵥ (E₂, R) :=
@@ -119,6 +119,16 @@ begin
   rw ←list.append_nil I at h2,
   rw ←list.append_nil S,
   exact interm_result h1 h2
+end
+
+lemma interm_result_tail
+  {P₁ P₂ S I E₁ E₂ Eᵢ R} :
+    (Eᵢ, P₂, I) ⟹ₙᵥ (E₂, R)
+  → (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
+  → (E₁, P₁ ++ P₂, S) ⟹ₙᵥ (E₂, R) :=
+begin
+  assume h2 h1,
+  apply interm_result_nil h1 h2
 end
 
 lemma push_on_stack {P v S R env} : 
@@ -134,8 +144,10 @@ begin
     exact h }
 end
 
+lemma 
+
 lemma vm_subst_eq : ∀ v x P,
-    vm_subst' v x [] P = vm_subst v x P := 
+    vm_subst' v x [] P = vm_subst v x P :=
 by rw vm_subst
 
 lemma vm_subst_distr {E v x P₁ P₂ S R} : 
@@ -157,8 +169,15 @@ begin
       { assume heq,
         rw if_pos heq at ⊢ h,
         rw vm_subst_eq,
-        sorry },
-      {sorry}
+        rw push_on_stack at h,
+        apply ERunPush,
+        exact ih h },
+      { assume hne,
+        rw if_neg hne at ⊢ h,
+        rw [vm_subst_eq, vm_subst_eq],
+        apply dite (∃ v, bound s v E),
+        sorry, sorry
+         }
     },
 
   }
