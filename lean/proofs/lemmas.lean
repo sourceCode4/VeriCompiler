@@ -50,7 +50,7 @@ begin
 end
 
 -- generalized intermediate_result lemma
-lemma interm_result_nv 
+lemma interm_result
   {P₁ P₂ : list instruction} {S S' I : list val} {E₁ E₂ Eᵢ R} :
     (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
   → (Eᵢ, P₂, I ++ S') ⟹ₙᵥ (E₂, R)
@@ -109,43 +109,43 @@ begin
   }
 end
 
-lemma push_on_stack {P v S R env} : 
-    ((env, IPush v :: P, S) ⟹ₙᵥ R)
-  → ((env, P, [v] ++ S) ⟹ₙᵥ R) :=
+lemma interm_result_nil
+  {P₁ P₂ : list instruction} {S I : list val} {E₁ E₂ Eᵢ R} :
+    (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
+  → (Eᵢ, P₂, I) ⟹ₙᵥ (E₂, R)
+  → (E₁, P₁ ++ P₂, S) ⟹ₙᵥ (E₂, R) :=
 begin
-  intro h,
-  cases' h,
-  exact h
+  assume h1 h2,
+  rw ←list.append_nil I at h2,
+  rw ←list.append_nil S,
+  exact interm_result h1 h2
 end
 
-lemma open_scope_rev {E e x v S R} :
-    (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R 
-  → ((x, v) :: E, compile e ++ [ICloseScope], S) ⟹ₙᵥ R :=
+lemma subst_vm_subst {E e x v S R} : 
+    (E, compile (subst v x e), S) ⟹ₙᵥ R
+  → (E, vm_subst v x (compile e), S) ⟹ₙᵥ R :=
 begin
   assume h,
-  cases' h,
-  exact h
+  induction' e, -- or h?
+  case ELet {
+    rw [subst] at h,
+    
+  }
 end
 
-lemma open_extra_bind {E e x v n S R} : 
-    free x n e
-  → (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R := sorry
+lemma extra_bind {E e x v S r} : 
+    (E, compile (subst v x e), S) ⟹ₙᵥ (E, r :: S)
+  → (⟨x, v⟩ :: E, compile e, S) ⟹ₙᵥ (⟨x, v⟩ :: E, r :: S) :=
+begin
+  sorry
+end
 
-lemma close_extra_bind {E E' P x v S S'} :
-    (E, P, S) ⟹ₙᵥ (⟨x, v⟩ :: E', S')
-  → (E, P ++ [ICloseScope], S) ⟹ₙᵥ (E', S') := sorry
-
-lemma extra_bind {E e x v S R} :
-    (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → (E, IOpenScope x :: compile e ++ [ICloseScope], v :: S) ⟹ₙᵥ R := sorry
-
-lemma subst_extra_bind {E e x v S R} :
-    (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → ((x, v) :: E, compile e ++ [ICloseScope], S) ⟹ₙᵥ R := 
+lemma subst_extra_bind {E e x v S r} :
+    (E, compile (subst v x e), S) ⟹ₙᵥ (E, r :: S)
+  → ((x, v) :: E, compile e ++ [ICloseScope], S) ⟹ₙᵥ (E, r :: S) := 
 begin
   assume h,
-  apply open_scope_rev,
-  apply extra_bind,
-  exact h
+  apply interm_result_nil (extra_bind h),
+  apply ERunCloseScope,
+  apply ERunEmpty
 end

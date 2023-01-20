@@ -15,14 +15,14 @@ begin
   },
   case RunOp {
     rw [compile, list.append_assoc],
-    apply interm_result_nv ih_heval_1,
-    apply interm_result_nv ih_heval,
+    apply interm_result ih_heval_1,
+    apply interm_result ih_heval,
     apply ERunOpInstr,
     apply ERunEmpty
   },
   case RunLet {
     rw [compile, list.append_assoc, list.cons_append],
-    apply interm_result_nv ih_heval,
+    apply interm_result ih_heval,
     apply ERunOpenScope,
     apply subst_extra_bind,
     apply ih_heval_1
@@ -30,9 +30,9 @@ begin
   case RunIfT {
     rw [compile],
     simp,
-    apply interm_result_nv ih_heval,
+    apply interm_result ih_heval,
     apply ERunTBranch,
-    apply interm_result_nv ih_heval_1,
+    apply interm_result ih_heval_1,
     apply ERunJump,
     { rw [at_least], simp },
     { rw [list.drop_length],
@@ -41,7 +41,7 @@ begin
   case RunIfF {
     rw [compile],
     simp,
-    apply interm_result_nv ih_heval,
+    apply interm_result ih_heval,
     apply ERunFBranch,
     { rw [at_least, list.length_append],
       simp },
