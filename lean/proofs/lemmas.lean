@@ -121,6 +121,19 @@ begin
   exact interm_result h1 h2
 end
 
+lemma push_on_stack {P v S R env} : 
+    (env, IPush v :: P, S) ⟹ₙᵥ R
+  ↔ (env, P, [v] ++ S) ⟹ₙᵥ R :=
+begin
+  apply iff.intro,
+  { intro h,
+    cases' h,
+    exact h },
+  { intro h,
+    apply ERunPush,
+    exact h }
+end
+
 lemma vm_subst_eq : ∀ v x P,
     vm_subst' v x [] P = vm_subst v x P := 
 by rw vm_subst
