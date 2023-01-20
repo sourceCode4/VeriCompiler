@@ -54,8 +54,8 @@ def at_least {α : Type} (n : ℕ) : list α → Prop
 | (l : list α) := l.length ≥ n
 
 inductive bound : string → val → list (string × val) → Prop
-| bhead {x v env}   : bound x v ((x, v) :: env)
-| btail {x v b env} : bound x v env → bound x v (b :: env)
+| bhead {x v env}     : bound x v ((x, v) :: env)
+| btail {x y v u env} : x ≠ y → bound x v env → bound x v (⟨y, u⟩ :: env)
 
 inductive vm_big_step : 
   list (string × val) × list instruction × list val → list val → Prop
