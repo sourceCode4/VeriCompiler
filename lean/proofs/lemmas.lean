@@ -121,12 +121,42 @@ begin
   exact interm_result h1 h2
 end
 
+lemma vm_subst_eq : ∀ v x P,
+    vm_subst' v x [] P = vm_subst v x P := 
+by rw vm_subst
+
+lemma vm_subst_distr {E v x P₁ P₂ S R} : 
+    (E, vm_subst v x (P₁ ++ P₂), S) ⟹ₙᵥ R
+  → (E, vm_subst v x P₁ ++ vm_subst v x P₂, S) ⟹ₙᵥ R :=
+begin
+  assume h,
+  rw [vm_subst] at h,
+  induction' P₁,
+  case nil { finish },
+  case cons {
+    rw vm_subst,
+    cases' hd,
+    case ILookup {
+      simp at h,
+      rw [vm_subst'] at ⊢ h,
+      simp at ⊢ h,
+      apply dite (s = x),
+      { assume heq,
+        rw if_pos heq at ⊢ h,
+        rw vm_subst_eq,
+        sorry },
+      {sorry}
+    },
+
+  }
+end
+
 lemma subst_vm_subst {E e x v S R} : 
     (E, compile (subst v x e), S) ⟹ₙᵥ R
   → (E, vm_subst v x (compile e), S) ⟹ₙᵥ R :=
 begin
   assume h,
-  induction' e, -- or h?
+  induction' h, -- or h?
   case ELet {
     rw [subst] at h,
     
