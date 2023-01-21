@@ -144,31 +144,12 @@ begin
     exact h }
 end
 
-lemma eq_if_bound_to_same_name {x v u env} : 
-    bound x v env → bound x u env 
-  → v = u :=
-begin
-  assume h1 h2,
-  induction' env,
-  case nil { cases' h1 },
-  case cons {
-    apply dite (hd = ⟨x, v⟩),
-  }
-end
-
-lemma bound_lookup {E x v P S R} : 
-    bound x v E
-  → (E, ILookup x :: P, S) ⟹ₙᵥ R
-  → (E, P, v :: S) ⟹ₙᵥ R :=
-begin
-  assume hbound heval,
-  cases' heval,
-  sorry
-end
-
 lemma vm_subst_eq : ∀ v x P,
     vm_subst' v x [] P = vm_subst v x P :=
-by rw vm_subst
+begin 
+  assume v x P,
+  rw vm_subst
+end
 
 lemma vm_subst_distr {E v x P₁ P₂ S R} : 
     (E, vm_subst v x (P₁ ++ P₂), S) ⟹ₙᵥ R
@@ -185,7 +166,7 @@ begin
       simp at h,
       rw [vm_subst'] at ⊢ h,
       simp at ⊢ h,
-      apply dite (s = x),
+      apply dite (x = s),
       { assume heq,
         rw if_pos heq at ⊢ h,
         rw vm_subst_eq,
@@ -201,7 +182,8 @@ begin
           cases' hex,
           apply ERunLookup h_1,
           cases' h,
-          apply ih h,
+          rw eq_if_bound_to_same_name h_1 _x,
+          apply ih h
         },
         {
           assume hnex,
@@ -211,33 +193,91 @@ begin
           apply exists.intro,
           exact _x
         }
-        }
+      }
     },
 
   }
 end
 
-lemma subst_vm_subst {E e x v S R} : 
-    (E, compile (subst v x e), S) ⟹ₙᵥ R
-  → (E, vm_subst v x (compile e), S) ⟹ₙᵥ R :=
+lemma dist_vm_subst {E v x P₁ P₂ S R} : 
+    (E, vm_subst v x P₁ ++ vm_subst v x P₂, S) ⟹ₙᵥ R
+  → (E, vm_subst v x (P₁ ++ P₂), S) ⟹ₙᵥ R :=
 begin
   assume h,
-  induction' h, -- or h?
-  case ELet {
-    rw [subst] at h,
+  induction' P₁,
+  case nil {
+    simp,
+    rw vm_subst at h,
+    exact h
+  },
+  case cons {
+    rw [vm_subst] at ⊢ h,
+    simp,
+    cases' hd,
+    case ILookup {
+      rw vm_subst' at ⊢ h,
+      simp at ⊢ h,
+      apply dite (x = s), {
+        assume heq,
+        rw [if_pos heq, push_on_stack] at ⊢ h,
+        exact ih h
+      }, {
+        assume hne,
+        rw [if_neg hne] at ⊢ h,
+        cases' h,
+        rename [x_1 y, v_1 u],
+        apply ERunLookup _x,
+        apply ih h
+      }
+    },
     
   }
 end
 
-lemma extra_bind {E e x v S r} : 
-    (E, compile (subst v x e), S) ⟹ₙᵥ (E, r :: S)
-  → (⟨x, v⟩ :: E, compile e, S) ⟹ₙᵥ (⟨x, v⟩ :: E, r :: S) :=
+lemma subst_vm_subst {E e x v S r} : 
+    subst v x e ⟹ r
+  → (E, vm_subst v x (compile e), S) ⟹ₙᵥ (E, r :: S) :=
 begin
-  sorry
+  assume h,
+  induction' e, -- or h?
+  case EVal {
+
+  }
 end
 
+lemma extra_binds {E E' e S r} : 
+    big_subst E e ⟹ r
+  → (E ++ E', compile e, S) ⟹ₙᵥ (E ++ E', r :: S) := 
+begin
+  assume h,
+  induction' e,
+  case ELet {
+    rw compile, simp,
+    rw big_subst at h,
+    apply dite (x = s), {
+      assume heq, rw if_pos heq at h,
+      cases' h,
+      apply interm_result_nil (ih_e h_1),
+      apply ERunOpenScope,
+      apply interm_result_nil (ih_e_1 h),
+      apply ERunCloseScope,
+      exact ERunEmpty
+    }, {
+      assume hne, rw if_neg hne at h,
+      cases' h,
+      apply interm_result_nil (ih_e h),
+      apply ERunOpenScope,
+
+    }
+  },
+end
+
+lemma extra_bind {E e x v S r} : 
+    subst v x e ⟹ r
+  → ((x, v) :: E, compile e, S) ⟹ₙᵥ ((x, v) :: E, r :: S) := sorry
+
 lemma subst_extra_bind {E e x v S r} :
-    (E, compile (subst v x e), S) ⟹ₙᵥ (E, r :: S)
+    subst v x e ⟹ r
   → ((x, v) :: E, compile e ++ [ICloseScope], S) ⟹ₙᵥ (E, r :: S) := 
 begin
   assume h,

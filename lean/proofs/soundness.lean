@@ -25,7 +25,7 @@ begin
     apply interm_result ih_heval,
     apply ERunOpenScope,
     apply subst_extra_bind,
-    apply ih_heval_1
+    apply heval_1
   }, 
   case RunIfT {
     rw [compile],

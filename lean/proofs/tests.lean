@@ -141,6 +141,7 @@ begin
   apply RunPush,
   apply RunLookup,
   { apply bound.btail,
+    finish,
     apply bound.bhead },
   apply RunCloseScope,
   have h : VNat 3 = eval 1 2 PlusOp := by refl,

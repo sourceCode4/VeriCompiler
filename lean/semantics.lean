@@ -1,4 +1,4 @@
-import .syntax .lovelib
+import .syntax
 
 open val bin_op exp instruction
 
@@ -18,10 +18,14 @@ def subst (v : val) (x : string) : exp → exp
 | (EOp op e₁ e₂) := EOp op (subst e₁) (subst e₂)
 | (EVal v) := (EVal v)
 
+def big_subst : list (string × val) → exp → exp
+| [] e := e
+| (⟨x, v⟩ :: nv) e := big_subst nv (subst v x e)
+
 def vm_subst' (v : val) (x : string)
   : list string → list instruction → list instruction
 | nv [] := []
-| nv (ILookup var :: ins) := (if var = x ∧ x ∉ nv then IPush v else ILookup var) :: vm_subst' nv ins
+| nv (ILookup var :: ins) := (if x = var ∧ x ∉ nv then IPush v else ILookup var) :: vm_subst' nv ins
 | nv (IOpenScope var :: ins) := IOpenScope var :: vm_subst' (var :: nv) ins
 | nv (ICloseScope :: ins) := ICloseScope :: vm_subst' nv.tail ins
 | nv (i :: ins) := i :: vm_subst' nv ins
