@@ -2,9 +2,9 @@ import .lemmas
 
 open big_step vm_big_step env_big_step val bin_op exp instruction
 
-lemma compile_sound_nv {e : exp} {v : val} :
+lemma compile_sound_nv {E} {e : exp} {v : val} :
     e ⟹ v
-  → ([], compile e, []) ⟹ₙᵥ ([], [v]) :=
+  → (E, compile e, []) ⟹ₙᵥ (E, [v]) :=
 begin
   assume heval,
   induction' heval,

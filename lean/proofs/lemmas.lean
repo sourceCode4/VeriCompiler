@@ -144,105 +144,52 @@ begin
     exact h }
 end
 
-lemma vm_subst_eq : ∀ v x P,
-    vm_subst' v x [] P = vm_subst v x P :=
-begin 
-  assume v x P,
-  rw vm_subst
+lemma big_subst_nil {e : exp} : 
+  big_subst [] e = e :=
+begin
+  cases' e,
+  repeat {rw big_subst}
 end
 
-lemma vm_subst_distr {E v x P₁ P₂ S R} : 
-    (E, vm_subst v x (P₁ ++ P₂), S) ⟹ₙᵥ R
-  → (E, vm_subst v x P₁ ++ vm_subst v x P₂, S) ⟹ₙᵥ R :=
+lemma big_subst_head : ∀ E hd e,
+    big_subst E (big_subst [hd] e)
+  = big_subst (hd :: E) e :=
 begin
-  assume h,
-  rw [vm_subst] at h,
-  induction' P₁,
-  case nil { finish },
-  case cons {
-    rw vm_subst,
-    cases' hd,
-    case ILookup {
+  assume E hd e,
+  cases' hd with x v,
+  repeat { rw big_subst }
+end
+
+lemma big_subst_distr {E E' e r} :
+    big_subst E' (big_subst E e) ⟹ r
+  → big_subst (E ++ E') e ⟹ r :=
+begin
+  --apply iff.intro,
+  { assume h,
+    induction' E,
+    case nil {
+      rw big_subst at h,
+      exact h
+    },
+    case cons {
+      rw [list.cons_append, ←big_subst_head],
+      apply ih,
+      rw [big_subst_head],
+      exact h
+    }
+  } -- if other way happens to be needed
+  /-{ assume h,
+    induction' E',
+    case nil {
       simp at h,
-      rw [vm_subst'] at ⊢ h,
-      simp at ⊢ h,
-      apply dite (x = s),
-      { assume heq,
-        rw if_pos heq at ⊢ h,
-        rw vm_subst_eq,
-        rw push_on_stack at h,
-        apply ERunPush,
-        exact ih h },
-      { assume hne,
-        rw if_neg hne at ⊢ h,
-        rw [vm_subst_eq, vm_subst_eq],
-        apply dite (∃ v, bound s v E),
-        {
-          assume hex,
-          cases' hex,
-          apply ERunLookup h_1,
-          cases' h,
-          rw eq_if_bound_to_same_name h_1 _x,
-          apply ih h
-        },
-        {
-          assume hnex,
-          cases' h,
-          apply false.elim,
-          apply hnex,
-          apply exists.intro,
-          exact _x
-        }
-      }
+      rw big_subst_nil, exact h
     },
-
-  }
-end
-
-lemma dist_vm_subst {E v x P₁ P₂ S R} : 
-    (E, vm_subst v x P₁ ++ vm_subst v x P₂, S) ⟹ₙᵥ R
-  → (E, vm_subst v x (P₁ ++ P₂), S) ⟹ₙᵥ R :=
-begin
-  assume h,
-  induction' P₁,
-  case nil {
-    simp,
-    rw vm_subst at h,
-    exact h
-  },
-  case cons {
-    rw [vm_subst] at ⊢ h,
-    simp,
-    cases' hd,
-    case ILookup {
-      rw vm_subst' at ⊢ h,
-      simp at ⊢ h,
-      apply dite (x = s), {
-        assume heq,
-        rw [if_pos heq, push_on_stack] at ⊢ h,
-        exact ih h
-      }, {
-        assume hne,
-        rw [if_neg hne] at ⊢ h,
-        cases' h,
-        rename [x_1 y, v_1 u],
-        apply ERunLookup _x,
-        apply ih h
-      }
-    },
-    
-  }
-end
-
-lemma subst_vm_subst {E e x v S r} : 
-    subst v x e ⟹ r
-  → (E, vm_subst v x (compile e), S) ⟹ₙᵥ (E, r :: S) :=
-begin
-  assume h,
-  induction' e, -- or h?
-  case EVal {
-
-  }
+    case cons {
+      rw [←list.singleton_append, 
+        ←list.append_assoc] at h,
+      sorry
+    }
+  }-/
 end
 
 lemma extra_binds {E E' e S r} : 
@@ -250,31 +197,63 @@ lemma extra_binds {E E' e S r} :
   → (E ++ E', compile e, S) ⟹ₙᵥ (E ++ E', r :: S) := 
 begin
   assume h,
-  induction' e,
-  case ELet {
-    rw compile, simp,
-    rw big_subst at h,
-    apply dite (x = s), {
-      assume heq, rw if_pos heq at h,
+  induction' E,
+  case nil {
+    rw big_subst at h, simp,
+    induction' e,
+    case EVal { 
+      rw compile,
+      apply ERunPush,
       cases' h,
-      apply interm_result_nil (ih_e h_1),
-      apply ERunOpenScope,
-      apply interm_result_nil (ih_e_1 h),
-      apply ERunCloseScope,
-      exact ERunEmpty
-    }, {
-      assume hne, rw if_neg hne at h,
+      apply ERunEmpty
+    },
+    case ELet {
+      rw compile, simp,
       cases' h,
       apply interm_result_nil (ih_e h),
       apply ERunOpenScope,
-
+      cases' h_1,
+      sorry
     }
   },
+  case cons {
+    induction' e,
+    case ELet {
+      rw compile, simp,
+      rw big_subst at h,
+      cases' hd, rename [fst x, snd v],
+      cases' h,
+
+    },
+  }
 end
 
 lemma extra_bind {E e x v S r} : 
     subst v x e ⟹ r
-  → ((x, v) :: E, compile e, S) ⟹ₙᵥ ((x, v) :: E, r :: S) := sorry
+  → ((x, v) :: E, compile e, S) ⟹ₙᵥ ((x, v) :: E, r :: S) :=
+begin
+  assume h,
+  induction' e,
+  case ELet {
+      rw compile, simp,
+      rw subst at h,
+      apply dite (x = s), {
+        assume heq, rw if_pos heq at h,
+        cases' h,
+        apply interm_result_nil (ih_e h_1),
+        apply ERunOpenScope,
+        apply interm_result_nil (ih_e_1 h),
+        apply ERunCloseScope,
+        exact ERunEmpty
+      }, {
+        assume hne, rw if_neg hne at h,
+        cases' h,
+        apply interm_result_nil (ih_e h),
+        apply ERunOpenScope,
+        sorry -- NEED big_subst TO MERGE THE TWO subst's IN h_1 !!!
+      }
+    },
+end
 
 lemma subst_extra_bind {E e x v S r} :
     subst v x e ⟹ r

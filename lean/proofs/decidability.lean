@@ -1,4 +1,4 @@
-import ..compiler ..semantics .base
+import ..compiler .base
 
 open bound val
 
