@@ -10,28 +10,31 @@ def eval (n m : ℕ) : ∀ (op : bin_op), val
 | EqOp    := VBool (n = m)
 
 def subst (v : val) (x : string) : exp → exp
-|   (EVar y) := if x = y then (EVal v) else (EVar y)
-| l@(ELet y e body) :=
+| (EVar y) := if x = y then (EVal v) else (EVar y)
+| (ELet y e body) :=
       if x = y then ELet y (subst e) body
       else ELet y (subst e) (subst body)
 | (EIf c t e) := EIf (subst c) (subst t) (subst e)
 | (EOp op e₁ e₂) := EOp op (subst e₁) (subst e₂)
 | (EVal v) := (EVal v)
 
+def lookup (name : string) : list (string × val) → option exp
+| [] := none
+| ((x, v) :: nv) := if x = name then some (EVal v) else lookup nv
+
+def remove (name : string) : list (string × val) → list (string × val)
+| [] := []
+| ((x, v) :: nv') := if x = name then remove nv' else (x, v) :: remove nv'
+
 def big_subst : list (string × val) → exp → exp
-| [] e := e
-| (⟨x, v⟩ :: nv) e := big_subst nv (subst v x e)
-
-def vm_subst' (v : val) (x : string)
-  : list string → list instruction → list instruction
-| nv [] := []
-| nv (ILookup var :: ins) := (if x = var ∧ x ∉ nv then IPush v else ILookup var) :: vm_subst' nv ins
-| nv (IOpenScope var :: ins) := IOpenScope var :: vm_subst' (var :: nv) ins
-| nv (ICloseScope :: ins) := ICloseScope :: vm_subst' nv.tail ins
-| nv (i :: ins) := i :: vm_subst' nv ins
-
-def vm_subst (v : val) (x : string)
-  : list instruction → list instruction := vm_subst' v x []
+| [] expr := expr
+| ((x, v) :: nv') e := big_subst nv' (subst v x e)
+/-| [] expr := expr
+| nv (EVar y) := option.get_or_else (lookup y nv) (EVar y)
+| nv (ELet y e body) := ELet y (big_subst nv e) (big_subst (remove y nv) body)
+| nv (EIf c t e) := EIf (big_subst nv c) (big_subst nv t) (big_subst nv e)
+| nv (EOp op e₁ e₂) := EOp op (big_subst nv e₁) (big_subst nv e₂)
+| nv (EVal v) := (EVal v)-/
 
 inductive big_step : exp → val → Prop
 | RunVal {v} : big_step (EVal v) v
