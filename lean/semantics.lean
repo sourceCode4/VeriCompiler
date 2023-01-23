@@ -18,10 +18,6 @@ def subst (v : val) (x : string) : exp → exp
 | (EOp op e₁ e₂) := EOp op (subst e₁) (subst e₂)
 | (EVal v) := (EVal v)
 
-def lookup (name : string) : list (string × val) → option exp
-| [] := none
-| ((x, v) :: nv) := if x = name then some (EVal v) else lookup nv
-
 def remove (name : string) : list (string × val) → list (string × val)
 | [] := []
 | ((x, v) :: nv') := if x = name then remove nv' else (x, v) :: remove nv'
@@ -29,12 +25,6 @@ def remove (name : string) : list (string × val) → list (string × val)
 def big_subst : list (string × val) → exp → exp
 | [] expr := expr
 | ((x, v) :: nv') e := big_subst nv' (subst v x e)
-/-| [] expr := expr
-| nv (EVar y) := option.get_or_else (lookup y nv) (EVar y)
-| nv (ELet y e body) := ELet y (big_subst nv e) (big_subst (remove y nv) body)
-| nv (EIf c t e) := EIf (big_subst nv c) (big_subst nv t) (big_subst nv e)
-| nv (EOp op e₁ e₂) := EOp op (big_subst nv e₁) (big_subst nv e₂)
-| nv (EVal v) := (EVal v)-/
 
 inductive big_step : exp → val → Prop
 | RunVal {v} : big_step (EVal v) v
