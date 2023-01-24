@@ -2,7 +2,7 @@ import .lemmas
 
 open big_step vm_big_step env_big_step val bin_op exp instruction
 
-lemma subst_extra_binds {E e S r} :
+lemma subst_binds {E e S r} :
     big_subst E e ⟹ r
   → (E, compile e, S) ⟹ₙᵥ (E, r :: S) := 
 begin
@@ -19,8 +19,8 @@ begin
     rw compile, simp,
     rw big_subst_spread_op at h,
     cases' h,
-    apply interm_result' (ih_e_1 h_1),
-    apply interm_result' (ih_e h),
+    apply from_interm_results' (ih_e_1 h_1),
+    apply from_interm_results' (ih_e h),
     apply ERunOpInstr,
     apply ERunEmpty
   },
@@ -29,16 +29,16 @@ begin
     rw big_subst_spread_if at h,
     cases' h,
     case RunIfT { 
-      apply interm_result' (ih_e h),
+      apply from_interm_results' (ih_e h),
       apply ERunTBranch,
-      apply interm_result' (ih_e_1 h_1),
+      apply from_interm_results' (ih_e_1 h_1),
       apply ERunJump,
       { rw at_least, simp },
       rw list.drop_length,
       apply ERunEmpty
     },
     case RunIfF {
-      apply interm_result' (ih_e h),
+      apply from_interm_results' (ih_e h),
       apply ERunFBranch,
       { rw [at_least], simp },
       rw [nat.add_comm, 
@@ -71,11 +71,11 @@ begin
     rw compile, simp,
     rw big_subst_spread_let at h,
     cases' h,
-    apply interm_result' (ih_e h),
+    apply from_interm_results' (ih_e h),
     apply ERunOpenScope,
     rw [subst_merge, 
       big_subst_remove_append] at h_1,
-    apply interm_result' (ih_e_1 h_1),
+    apply from_interm_results' (ih_e_1 h_1),
     apply ERunCloseScope,
     apply ERunEmpty
   }
@@ -90,12 +90,12 @@ begin
   exact h
 end
 
-lemma subst_extra_bind {e x v r} :
+lemma subst_bind {e x v r} :
     subst v x e ⟹ r
   → ([(x, v)], compile e ++ [ICloseScope], []) ⟹ₙᵥ ([], [r]) := 
 begin
   assume h,
-  apply interm_result' (subst_extra_binds $ to_big_subst h),
+  apply from_interm_results' (subst_binds $ to_big_subst h),
   apply ERunCloseScope,
   apply ERunEmpty
 end
@@ -113,24 +113,24 @@ begin
   },
   case RunOp {
     rw [compile, list.append_assoc],
-    apply interm_result ih_heval_1,
-    apply interm_result ih_heval,
+    apply from_interm_results ih_heval_1,
+    apply from_interm_results ih_heval,
     apply ERunOpInstr,
     apply ERunEmpty
   },
   case RunLet {
     rw [compile, list.append_assoc, list.cons_append],
-    apply interm_result ih_heval,
+    apply from_interm_results ih_heval,
     apply ERunOpenScope,
-    apply subst_extra_bind,
+    apply subst_bind,
     apply heval_1
   }, 
   case RunIfT {
     rw [compile],
     simp,
-    apply interm_result ih_heval,
+    apply from_interm_results ih_heval,
     apply ERunTBranch,
-    apply interm_result ih_heval_1,
+    apply from_interm_results ih_heval_1,
     apply ERunJump,
     { rw [at_least], simp },
     { rw [list.drop_length],
@@ -139,7 +139,7 @@ begin
   case RunIfF {
     rw [compile],
     simp,
-    apply interm_result ih_heval,
+    apply from_interm_results ih_heval,
     apply ERunFBranch,
     { rw [at_least], simp },
     { rw [nat.add_comm, 

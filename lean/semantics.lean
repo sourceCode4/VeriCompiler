@@ -85,7 +85,7 @@ inductive vm_big_step :
   (_ : vm_big_step (env, instrs, stack) res)
   : vm_big_step (⟨x, v⟩ :: env, ICloseScope :: instrs, stack) res
 
-infix ` ⟹ᵥₘ ` : 25 := vm_big_step
+infix ` ⟹ᵥₘ ` : 50 := vm_big_step
 
 -- big-step semantics including resulting environment
 inductive env_big_step :
@@ -120,4 +120,4 @@ inductive env_big_step :
   (_ : env_big_step (env, instrs, stack) res)
   : env_big_step (⟨x, v⟩ :: env, ICloseScope :: instrs, stack) res
 
-infix ` ⟹ₙᵥ ` : 25 := env_big_step
+infix ` ⟹ₙᵥ ` : 50 := env_big_step
