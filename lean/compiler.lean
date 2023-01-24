@@ -13,5 +13,4 @@ def compile : exp → list instruction
   (IBranch (t_branch.length + 1) :: t_branch) ++ 
   (IJump (f_branch.length) :: f_branch)
 | (ELet x v body) :=
-  -- compiler never leaves "dangling" variables in the environment
   compile v ++ IOpenScope x :: compile body ++ [ICloseScope]

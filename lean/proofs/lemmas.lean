@@ -109,7 +109,7 @@ begin
   }
 end
 
-lemma interm_result_nil
+lemma interm_result'
   {P₁ P₂ S I E₁ E₂ Eᵢ R} :
     (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
   → (Eᵢ, P₂, I) ⟹ₙᵥ (E₂, R)
@@ -155,7 +155,8 @@ begin
       rw [subst, if_pos heq, subst]
     }, {
       assume hne,
-      repeat { rw [subst, if_neg hne] }
+      rw [subst, if_neg hne, 
+          subst, if_neg hne]
     }
   },
   case EOp {
@@ -196,10 +197,12 @@ begin
       apply dite (y = s), {
         assume heqy,
         rw [subst, if_pos heqy, subst, subst],
-        finish
-      },  {
+        finish -- contradiction
+      }, {
         assume hney,
-        rw [subst, if_neg hney, subst, if_pos heqx, subst]
+        rw [subst, if_neg hney,
+            subst, if_pos heqx, 
+            subst]
       }
     }, {
       assume hnex,
@@ -229,11 +232,13 @@ begin
       apply dite (y = s), {
         assume heqy,
         rw [if_pos heqy, if_pos heqy, 
-            subst, if_pos heqx, ih_e hne]
+            subst, if_pos heqx, 
+            ih_e hne]
       }, {
         assume hney,
         rw [if_neg hney, if_neg hney, 
-            subst, if_pos heqx, ih_e hne]
+            subst, if_pos heqx,
+            ih_e hne]
       }
     }, {
       assume hnex,
@@ -241,11 +246,13 @@ begin
       apply dite (y = s), {
         assume heqy,
         rw [if_pos heqy, if_pos heqy, 
-            subst, if_neg hnex, ih_e hne]
+            subst, if_neg hnex, 
+            ih_e hne]
       }, {
         assume hney,
         rw [if_neg hney, if_neg hney, 
-            subst, if_neg hnex, ih_e hne, ih_e_1 hne]
+            subst, if_neg hnex, 
+            ih_e hne, ih_e_1 hne]
       }
     }
   }
@@ -436,8 +443,8 @@ begin
     rw compile, simp,
     rw big_subst_spread_op at h,
     cases' h,
-    apply interm_result_nil (ih_e_1 h_1),
-    apply interm_result_nil (ih_e h),
+    apply interm_result' (ih_e_1 h_1),
+    apply interm_result' (ih_e h),
     apply ERunOpInstr,
     apply ERunEmpty
   },
@@ -446,16 +453,16 @@ begin
     rw big_subst_spread_if at h,
     cases' h,
     case RunIfT { 
-      apply interm_result_nil (ih_e h),
+      apply interm_result' (ih_e h),
       apply ERunTBranch,
-      apply interm_result_nil (ih_e_1 h_1),
+      apply interm_result' (ih_e_1 h_1),
       apply ERunJump,
       { rw at_least, simp },
       rw list.drop_length,
       apply ERunEmpty
     },
     case RunIfF {
-      apply interm_result_nil (ih_e h),
+      apply interm_result' (ih_e h),
       apply ERunFBranch,
       { rw [at_least, 
           list.length_append, 
@@ -487,11 +494,11 @@ begin
     rw compile, simp,
     rw big_subst_spread_let at h,
     cases' h,
-    apply interm_result_nil (ih_e h),
+    apply interm_result' (ih_e h),
     apply ERunOpenScope,
     rw [subst_merge, 
       big_subst_remove_append] at h_1,
-    apply interm_result_nil (ih_e_1 h_1),
+    apply interm_result' (ih_e_1 h_1),
     apply ERunCloseScope,
     apply ERunEmpty
   }
@@ -506,12 +513,12 @@ begin
   exact h
 end
 
-lemma subst_extra_bind {e x v S r} :
+lemma subst_extra_bind {e x v r} :
     subst v x e ⟹ r
-  → ([(x, v)], compile e ++ [ICloseScope], S) ⟹ₙᵥ ([], r :: S) := 
+  → ([(x, v)], compile e ++ [ICloseScope], []) ⟹ₙᵥ ([], [r]) := 
 begin
   assume h,
-  apply interm_result_nil (subst_extra_binds $ to_big_subst h),
+  apply interm_result' (subst_extra_binds $ to_big_subst h),
   apply ERunCloseScope,
   apply ERunEmpty
 end

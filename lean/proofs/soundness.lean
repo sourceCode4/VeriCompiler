@@ -2,7 +2,7 @@ import .lemmas
 
 open big_step vm_big_step env_big_step val bin_op exp instruction
 
-lemma compile_sound_nv {e : exp} {v : val} :
+lemma compile_sound' {e : exp} {v : val} :
     e ⟹ v
   → ([], compile e, []) ⟹ₙᵥ ([], [v]) :=
 begin
@@ -61,4 +61,4 @@ lemma compile_sound (e : exp) (v : val) :
     e ⟹ v
   → ([], compile e, []) ⟹ᵥₘ [v] :=
 assume hstep, 
-env_vm_big_step (compile_sound_nv hstep)
+env_vm_big_step (compile_sound' hstep)

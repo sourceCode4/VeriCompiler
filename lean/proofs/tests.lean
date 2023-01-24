@@ -74,30 +74,18 @@ begin
   contradiction
 end
 
-lemma unbound_var_no_out₁ : 
-  ¬ ∃ out, EOp PlusOp (EVal (VNat 0)) (EVar "x") ⟹ out := 
+lemma unbound_var_no_out : 
+  ∀ x, ¬ ∃ out, EVar x ⟹ out := 
 begin
+  assume x,
   assume hex,
   cases hex with hval hstep,
-  cases hstep,
-  cases hstep__x_1
-end
-
-lemma unbound_var_no_out₂ : 
-  ¬ ∃ out, ELet "y" (EVal (VNat 1)) (EOp PlusOp (EVal (VNat 0)) (EVar "x")) ⟹ out := 
-begin
-  assume hex,
-  cases' hex,
-  cases' h,
-  repeat {rw subst at h_1},
-  rw ite at h_1,
-  cases' h_1,
-  cases' h_1_1
+  cases hstep
 end
 
 lemma test_name_shadow : 
   ELet "x" (ELet "x" (EVal (VNat 1)) 
-              (EOp PlusOp (EVar "x") (EVal (VNat 2)))) -- = 3
+              (EOp PlusOp (EVar "x") (EVal (VNat 2))))
     (ELet "x" (EVal (VNat 0)) 
         (EOp EqOp (EVar "x") (EVal (VNat 0)))) ⟹ VBool true :=
 begin
