@@ -111,8 +111,6 @@ begin
   }
 end
 
-
-
 -- generalized intermediate_result lemma
 lemma from_interm_results
   {P₁ P₂ : list instruction} {S S' I R : list val} {E₁ E₂ Eᵢ} :
