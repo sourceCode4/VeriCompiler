@@ -81,21 +81,13 @@ begin
   }
 end
 
-lemma to_big_subst {v x e r} :
-    subst v x e ⟹ r
-  → big_subst [(x, v)] e ⟹ r :=
-begin
-  assume h,
-  rw [big_subst, big_subst],
-  exact h
-end
-
 lemma subst_bind {e x v r} :
     subst v x e ⟹ r
   → ([(x, v)], compile e ++ [ICloseScope], []) ⟹ₙᵥ ([], [r]) := 
 begin
   assume h,
-  apply from_interm_results' (subst_binds $ to_big_subst h),
+  rw ←single_big_subst_is_subst at h,
+  apply from_interm_results' (subst_binds h),
   apply ERunCloseScope,
   apply ERunEmpty
 end

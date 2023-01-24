@@ -111,6 +111,8 @@ begin
   }
 end
 
+
+
 -- generalized intermediate_result lemma
 lemma from_interm_results
   {P₁ P₂ : list instruction} {S S' I R : list val} {E₁ E₂ Eᵢ} :
@@ -182,7 +184,6 @@ begin
   rw ←list.append_nil S,
   exact from_interm_results h1 h2
 end
-
 
 lemma subst_absorb {E v x e} : 
     big_subst E (subst v x e) 
@@ -488,3 +489,7 @@ begin
     }
   }
 end
+
+lemma single_big_subst_is_subst {x v e} : 
+  big_subst [(x, v)] e = subst v x e := 
+by rw [big_subst, big_subst]
