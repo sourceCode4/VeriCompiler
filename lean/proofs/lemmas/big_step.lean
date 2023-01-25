@@ -1,7 +1,8 @@
-import ...semantics
-import ...compiler
-import tactic.induction
-import tactic.linarith
+import 
+  tactic.induction
+  tactic.linarith
+  ...compiler
+  ...semantics
 
 open vm_big_step env_big_step
 

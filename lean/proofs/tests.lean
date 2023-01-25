@@ -1,4 +1,8 @@
-import ..syntax ..semantics ..lovelib
+import
+  tactic.induction
+  tactic.linarith
+  ..semantics 
+  ..syntax
 
 open instruction exp val bin_op big_step vm_big_step
 

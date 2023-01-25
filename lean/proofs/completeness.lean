@@ -1,7 +1,8 @@
-import .lemmas.substitution
-import .lemmas.big_step
+import 
+  .lemmas.substitution
+  .lemmas.big_step
 
-open big_step vm_big_step env_big_step val bin_op exp instruction
+open big_step
 
 lemma bind_substs {E e S r} : 
   (E, compile e, S) ⟹ₙᵥ (E, r :: S)

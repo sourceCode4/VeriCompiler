@@ -1,8 +1,9 @@
-import .decidable
-import tactic.induction
-import tactic.linarith
+import 
+  tactic.induction
+  tactic.linarith
+  .decidable
 
-open val exp
+open exp
 
 lemma subst_absorb {E v x e} : 
     big_subst E (subst v x e) 

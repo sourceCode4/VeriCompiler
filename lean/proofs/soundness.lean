@@ -1,7 +1,8 @@
-import .lemmas.substitution
-import .lemmas.big_step
+import 
+  .lemmas.substitution
+  .lemmas.big_step
 
-open big_step vm_big_step env_big_step val bin_op exp instruction
+open env_big_step
 
 lemma subst_binds {E e S r} :
     big_subst E e ⟹ r

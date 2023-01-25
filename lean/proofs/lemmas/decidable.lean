@@ -1,7 +1,8 @@
-import ...compiler
-import ...semantics
-import tactic.induction
-import tactic.linarith
+import
+  tactic.induction
+  tactic.linarith
+  ...compiler
+  ...semantics
 
 open val bound
 
