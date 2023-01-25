@@ -1,5 +1,5 @@
 import .lemmas.substitution
-import .lemmas.conversion
+import .lemmas.big_step
 
 open big_step vm_big_step env_big_step val bin_op exp instruction
 
@@ -82,73 +82,14 @@ begin
   }
 end
 
-lemma subst_bind {e x v r} :
-    subst v x e ⟹ r
-  → ([(x, v)], compile e ++ [ICloseScope], []) ⟹ₙᵥ ([], [r]) := 
-begin
-  assume h,
-  rw ←single_big_subst_is_subst at h,
-  apply from_interm_results' (subst_binds h),
-  apply ERunCloseScope,
-  apply ERunEmpty
-end
-
-lemma compile_sound' {e : exp} {v : val} :
+lemma compile_sound_nv {e : exp} {v : val} :
     e ⟹ v
   → ([], compile e, []) ⟹ₙᵥ ([], [v]) :=
-begin
-  assume heval,
-  induction' heval,
-  case RunVal {
-    rw compile,
-    apply ERunPush,
-    apply ERunEmpty
-  },
-  case RunOp {
-    rw [compile, list.append_assoc],
-    apply from_interm_results ih_heval_1,
-    apply from_interm_results ih_heval,
-    apply ERunOpInstr,
-    apply ERunEmpty
-  },
-  case RunLet {
-    rw [compile, list.append_assoc, list.cons_append],
-    apply from_interm_results ih_heval,
-    apply ERunOpenScope,
-    apply subst_bind,
-    apply heval_1
-  }, 
-  case RunIfT {
-    rw [compile],
-    simp,
-    apply from_interm_results ih_heval,
-    apply ERunTBranch,
-    apply from_interm_results ih_heval_1,
-    apply ERunJump,
-    { rw [at_least], simp },
-    { rw [list.drop_length],
-      apply ERunEmpty }
-  },
-  case RunIfF {
-    rw [compile],
-    simp,
-    apply from_interm_results ih_heval,
-    apply ERunFBranch,
-    { rw [at_least], simp },
-    { rw [nat.add_comm, 
-          list.drop_add, 
-          list.drop_one,
-          list.drop_append_of_le_length,
-          list.drop_length,
-          list.nil_append,
-          list.tail],
-      exact ih_heval_1,
-      refl }
-  }
-end
+assume h,
+by rw ←big_subst_empty e at h; exact subst_binds h
 
 lemma compile_sound (e : exp) (v : val) : 
     e ⟹ v
   → ([], compile e, []) ⟹ᵥₘ [v] :=
 assume hstep, 
-env_vm_big_step (compile_sound' hstep)
+env_vm_big_step (compile_sound_nv hstep)
