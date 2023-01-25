@@ -1,4 +1,5 @@
-import .lemmas
+import .lemmas.substitution
+import .lemmas.conversion
 
 open big_step vm_big_step env_big_step val bin_op exp instruction
 

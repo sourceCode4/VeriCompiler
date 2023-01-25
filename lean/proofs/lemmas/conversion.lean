@@ -1,0 +1,124 @@
+import ...semantics
+import tactic.induction
+import tactic.linarith
+
+open vm_big_step env_big_step
+
+-- env_big_step implies vm_big_step
+lemma env_vm_big_step {env env' P S R} :
+    (env, P, S) ⟹ₙᵥ (env', R)
+  → (env, P, S) ⟹ᵥₘ R :=
+begin
+  assume hnv,
+  induction' hnv,
+  case ERunEmpty {
+    apply RunEmpty
+  },
+  case ERunPush {
+    apply RunPush,
+    exact ih
+  },
+  case ERunOpInstr {
+    apply RunOpInstr,
+    exact ih
+  },
+  case ERunTBranch {
+    apply RunTBranch,
+    exact ih
+  },
+  case ERunFBranch {
+    apply RunFBranch,
+    { exact _x },
+    { exact ih }
+  },
+  case ERunJump {
+    apply RunJump,
+    { exact _x },
+    { exact ih }
+  },
+  case ERunLookup {
+    apply RunLookup,
+    { exact _x },
+    { exact ih }
+  },
+  case ERunOpenScope {
+    apply RunOpenScope,
+    exact ih
+  },
+  case ERunCloseScope {
+    apply RunCloseScope,
+    exact ih
+  }
+end
+
+-- generalized intermediate_result lemma
+lemma from_interm_results
+  {P₁ P₂ : list instruction} {S S' I R : list val} {E₁ E₂ Eᵢ} :
+    (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
+  → (Eᵢ, P₂, I ++ S') ⟹ₙᵥ (E₂, R)
+  → (E₁, P₁ ++ P₂, S ++ S') ⟹ₙᵥ (E₂, R) :=
+begin
+  assume h1 h2,
+  induction' h1,
+  { exact h2 },
+  { apply ERunPush,
+    rw ←list.cons_append,
+    apply ih h2 },
+  case ERunOpInstr {
+    rw list.cons_append,
+    apply ERunOpInstr,
+    apply ih h2
+  },
+  case ERunTBranch {
+    rw list.cons_append,
+    apply ERunTBranch,
+    apply ih h2
+  },
+  case ERunFBranch {
+    rw list.cons_append,
+    apply ERunFBranch,
+    { rw [at_least, list.length_append], 
+      rw [at_least] at _x,
+      linarith },
+    rw [list.drop_append_of_le_length],
+    apply ih h2,
+    exact _x
+  },
+  case ERunJump {
+    rw list.cons_append,
+    apply ERunJump,
+    { rw [at_least, list.length_append], 
+      rw [at_least] at _x,
+      linarith },
+    rw [list.drop_append_of_le_length],
+    apply ih h2,
+    exact _x
+  },
+  case ERunLookup {
+    apply ERunLookup _x,
+    rw ←list.cons_append,
+    apply ih h2
+  },
+  case ERunOpenScope {
+    rw list.cons_append,
+    apply ERunOpenScope,
+    apply ih h2
+  },
+  case ERunCloseScope {
+    rw list.cons_append,
+    apply ERunCloseScope,
+    apply ih h2
+  }
+end
+
+lemma from_interm_results'
+  {P₁ P₂ S I E₁ E₂ Eᵢ R} :
+    (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
+  → (Eᵢ, P₂, I) ⟹ₙᵥ (E₂, R)
+  → (E₁, P₁ ++ P₂, S) ⟹ₙᵥ (E₂, R) :=
+begin
+  assume h1 h2,
+  rw ←list.append_nil I at h2,
+  rw ←list.append_nil S,
+  exact from_interm_results h1 h2
+end

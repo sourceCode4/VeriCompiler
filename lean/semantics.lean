@@ -50,6 +50,9 @@ infixr ` ⟹ ` : 30 := big_step
 def at_least {α : Type} (n : ℕ) : list α → Prop
 | (l : list α) := l.length ≥ n
 
+lemma at_least_refl {α : Type} {l : list α} : at_least l.length l :=
+by rw [at_least]; exact nat.le_refl (l.length)
+
 inductive bound : string → val → list (string × val) → Prop
 | bhead {x v env}     : bound x v ((x, v) :: env)
 | btail {x y v u env} : x ≠ y → bound x v env → bound x v (⟨y, u⟩ :: env)
