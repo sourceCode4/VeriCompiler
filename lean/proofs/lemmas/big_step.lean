@@ -6,7 +6,7 @@ import
 
 open vm_big_step env_big_step
 
--- env_big_step implies vm_big_step
+-- convert from environment-preserving to regular big_step
 lemma env_vm_big_step {env env' P S R} :
     (env, P, S) ⟹ₙᵥ (env', R)
   → (env, P, S) ⟹ᵥₘ R :=
@@ -53,9 +53,8 @@ begin
   }
 end
 
--- generalized intermediate_result lemma
 lemma from_interm_results
-  {P₁ P₂ : list instruction} {S S' I R : list val} {E₁ E₂ Eᵢ} :
+  {E₁ E₂ Eᵢ P₁ P₂ S S' I R} :
     (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
   → (Eᵢ, P₂, I ++ S') ⟹ₙᵥ (E₂, R)
   → (E₁, P₁ ++ P₂, S ++ S') ⟹ₙᵥ (E₂, R) :=
@@ -114,7 +113,7 @@ begin
 end
 
 lemma from_interm_results'
-  {P₁ P₂ S I E₁ E₂ Eᵢ R} :
+  {E₁ E₂ Eᵢ P₁ P₂ S I R} :
     (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
   → (Eᵢ, P₂, I) ⟹ₙᵥ (E₂, R)
   → (E₁, P₁ ++ P₂, S) ⟹ₙᵥ (E₂, R) :=
@@ -128,7 +127,7 @@ end
 lemma to_interm_results {E₁ E₂ e P S S' r} :
   (E₁, compile e ++ P, S) ⟹ₙᵥ (E₂, r :: S')
   → ∃ v, (E₁, compile e, S) ⟹ₙᵥ (E₁, v :: S) ∧ 
-          (E₁, P, v :: S) ⟹ₙᵥ (E₂, r :: S') :=
+         (E₁, P, v :: S) ⟹ₙᵥ (E₂, r :: S') :=
 begin
   assume hnv,
   induction' e,

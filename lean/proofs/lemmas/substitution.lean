@@ -310,10 +310,6 @@ begin
   }
 end
 
-lemma single_big_subst_is_subst {x v e} : 
-  big_subst [(x, v)] e = subst v x e := 
-by rw [big_subst, big_subst]
-
 lemma big_subst_empty (e : exp) :
   big_subst [] e = e :=
 by rw big_subst
