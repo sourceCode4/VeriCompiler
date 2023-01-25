@@ -35,7 +35,7 @@ begin
       apply ERunTBranch,
       apply from_interm_results' (ih_e_1 h_1),
       apply ERunJump,
-      { rw at_least, simp },
+      exact at_least_refl,
       rw list.drop_length,
       apply ERunEmpty
     },
