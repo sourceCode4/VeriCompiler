@@ -53,7 +53,7 @@ begin
   }
 end
 
-lemma from_interm_results
+theorem from_interm_results
   {E₁ E₂ Eᵢ P₁ P₂ S S' I R} :
     (E₁, P₁, S) ⟹ₙᵥ (Eᵢ, I)
   → (Eᵢ, P₂, I ++ S') ⟹ₙᵥ (E₂, R)
@@ -124,7 +124,7 @@ begin
   exact from_interm_results h1 h2
 end
 
-lemma to_interm_results {E₁ E₂ e P S S' r} :
+theorem to_interm_results {E₁ E₂ e P S S' r} :
   (E₁, compile e ++ P, S) ⟹ₙᵥ (E₂, r :: S')
   → ∃ v, (E₁, compile e, S) ⟹ₙᵥ (E₁, v :: S) ∧ 
          (E₁, P, v :: S) ⟹ₙᵥ (E₂, r :: S') :=

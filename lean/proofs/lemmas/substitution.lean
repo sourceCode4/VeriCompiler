@@ -1,9 +1,13 @@
 import 
+  ...semantics
   tactic.induction
-  tactic.linarith
-  .decidable
+  tactic.finish
 
 open exp
+
+lemma big_subst_empty (e : exp) :
+  big_subst [] e = e :=
+by rw big_subst
 
 lemma subst_absorb {E v x e} : 
     big_subst E (subst v x e) 
@@ -171,7 +175,8 @@ begin
   }
 end
 
-lemma big_subst_val {E v} : big_subst E (EVal v) = (EVal v) :=
+lemma big_subst_val {E v} : 
+  big_subst E (EVal v) = (EVal v) :=
 begin
   induction' E,
   case nil {
@@ -241,7 +246,9 @@ begin
   }
 end
 
-lemma big_subst_bound_res {E x v r} : 
+open val
+
+lemma big_subst_bound_var {E x v r} : 
     bound x v E
   → big_subst E (EVar x) ⟹ r
   → v = r :=
@@ -257,22 +264,16 @@ begin
     apply dite (x = y), {
       assume heqx,
       rw heqx at heval hbound,
-      apply dite (v = u), {
-        assume heqv,
-        rw [big_subst, subst, 
+      rw [big_subst, subst, 
             if_pos (eq.refl y), 
             big_subst_val] at heval,
-        cases' heval,
-        exact heqv
-      }, {
-        assume hnev,
-        cases' hbound,
-        contradiction,
-        contradiction
-      }
+      cases' heval,
+      cases' hbound,
+      { refl },
+      { contradiction }
     }, {
       assume hnex,
-      rw [big_subst, subst, 
+      rw [big_subst, subst,
           if_neg (ne.intro hnex).symm] at heval,
       cases' hbound,
       case bhead { contradiction },
@@ -309,7 +310,3 @@ begin
     }
   }
 end
-
-lemma big_subst_empty (e : exp) :
-  big_subst [] e = e :=
-by rw big_subst

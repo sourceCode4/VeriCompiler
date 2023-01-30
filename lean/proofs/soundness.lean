@@ -4,7 +4,7 @@ import
 
 open env_big_step
 
-lemma subst_binds {E e S r} :
+lemma big_subst_sound {E e S r} :
     big_subst E e ⟹ r
   → (E, compile e, S) ⟹ₙᵥ (E, r :: S) := 
 begin
@@ -16,6 +16,13 @@ begin
     cases' h,
     apply ERunPush,
     apply ERunEmpty
+  },
+  case EVar {
+    rw compile,
+    cases' big_subst_var_implies_bound h with v hbound,
+    apply ERunLookup hbound,
+    rw big_subst_bound_var hbound h,
+    exact ERunEmpty
   },
   case EOp {
     rw compile, simp,
@@ -54,21 +61,6 @@ begin
       refl
     }
   },
-  case EVar {
-    rw compile,
-    apply dite (∃v, bound s v E), {
-      assume hex,
-      cases' hex with v hbound,
-      apply ERunLookup hbound,
-      rw big_subst_bound_res hbound h,
-      exact ERunEmpty
-    }, {
-      assume hnex,
-      apply false.elim,
-      apply hnex,
-      apply big_subst_var_implies_bound h
-    }
-  },
   case ELet {
     rw compile, simp,
     rw big_subst_spread_let at h,
@@ -83,14 +75,13 @@ begin
   }
 end
 
-lemma compile_sound_nv {e : exp} {v : val} :
+theorem compile_sound_nv {e : exp} {v : val} :
     e ⟹ v
   → ([], compile e, []) ⟹ₙᵥ ([], [v]) :=
 assume h,
-by rw ←big_subst_empty e at h; exact subst_binds h
+by rw ←big_subst_empty e at h; exact big_subst_sound h
 
-lemma compile_sound (e : exp) (v : val) : 
+theorem compile_sound (e : exp) (v : val) : 
     e ⟹ v
   → ([], compile e, []) ⟹ᵥₘ [v] :=
-assume hstep, 
-env_vm_big_step (compile_sound_nv hstep)
+env_vm_big_step ∘ compile_sound_nv

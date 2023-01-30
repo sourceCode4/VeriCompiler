@@ -7,10 +7,10 @@ def compile : exp → list instruction
 | (EVar x) := [ILookup x]
 | (EOp op e₁ e₂) := compile e₂ ++ compile e₁ ++ [IOp op]
 | (EIf c t f) := 
-  let t_branch : list instruction := compile t,
-      f_branch : list instruction := compile f in
-  compile c ++ 
-  (IBranch (t_branch.length + 1) :: t_branch) ++ 
-  (IJump (f_branch.length) :: f_branch)
+  let t_branch := compile t,
+      f_branch := compile f in 
+    compile c 
+    ++ (IBranch (t_branch.length + 1) :: t_branch) 
+    ++ (IJump (f_branch.length) :: f_branch)
 | (ELet x v body) :=
   compile v ++ IOpenScope x :: compile body ++ [ICloseScope]

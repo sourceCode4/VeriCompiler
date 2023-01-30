@@ -4,7 +4,7 @@ import
 
 open big_step
 
-lemma bind_substs {E e S r} : 
+lemma big_subst_complete {E e S r} : 
   (E, compile e, S) ⟹ₙᵥ (E, r :: S)
   → big_subst E e ⟹ r :=
 begin
@@ -92,10 +92,10 @@ begin
   }
 end
 
-lemma compile_complete_nv
-  {e : exp} {r : val} {S : list val} :
+theorem compile_complete_nv
+  {e : exp} {r : val} :
     ([], compile e, []) ⟹ₙᵥ ([], [r])
   → e ⟹ r :=
 assume h,
-have H : _ := bind_substs h,
+have H : big_subst [] e ⟹ r := big_subst_complete h,
 by rw big_subst at H; exact H
