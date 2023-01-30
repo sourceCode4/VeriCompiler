@@ -16,6 +16,19 @@ begin
     rw big_subst_val,
     apply RunVal
   },
+  case EVar {
+    rw compile at h,
+    cases' h, cases' h,
+    induction' _x,
+    case bhead {
+      rw [big_subst, subst, if_pos (eq.refl x), big_subst_val],
+      apply RunVal
+    },
+    case btail {
+      rw [big_subst, subst, if_neg h.symm],
+      exact ih
+    }
+  },
   case EOp {
     rw compile at h, simp at h,
     rw big_subst_spread_op,
@@ -61,19 +74,6 @@ begin
       exact ih_e he,
       exact ih_e_2 he_2,
       refl
-    }
-  },
-  case EVar {
-    rw compile at h,
-    cases' h, cases' h,
-    induction' _x,
-    case bhead {
-      rw [big_subst, subst, if_pos (eq.refl x), big_subst_val],
-      apply RunVal
-    },
-    case btail {
-      rw [big_subst, subst, if_neg h.symm],
-      exact ih
     }
   },
   case ELet {
