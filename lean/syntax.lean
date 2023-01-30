@@ -7,8 +7,12 @@ inductive val : Type
 inductive bin_op : Type
 | PlusOp : bin_op
 | MinusOp : bin_op
+| TimesOp : bin_op
+| ModOp : bin_op
 | LeOp : bin_op
 | LtOp : bin_op
+| GeOp : bin_op
+| GtOp : bin_op
 | EqOp : bin_op
 
 inductive exp : Type

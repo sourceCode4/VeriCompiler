@@ -2,9 +2,13 @@ import .syntax
 
 open val bin_op exp instruction
 
-def eval (n m : ℕ) : ∀ (op : bin_op), val
+def eval (n m : ℕ) : bin_op → val
 | PlusOp  := VNat (n + m)
 | MinusOp := VNat (n - m)
+| TimesOp := VNat (n * m)
+| ModOp   := VNat (n % m)
+| GeOp    := VBool (n ≥ m)
+| GtOp    := VBool (n > m)
 | LeOp    := VBool (n ≤ m)
 | LtOp    := VBool (n < m)
 | EqOp    := VBool (n = m)
