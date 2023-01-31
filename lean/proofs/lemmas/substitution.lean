@@ -6,7 +6,7 @@ import
 open exp
 
 lemma big_subst_empty (e : exp) :
-  big_subst [] e = e :=
+  e = big_subst [] e :=
 by rw big_subst
 
 lemma subst_absorb {E v x e} : 

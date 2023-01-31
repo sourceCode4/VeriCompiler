@@ -78,8 +78,7 @@ end
 theorem compile_sound_nv {e : exp} {v : val} :
     e ⟹ v
   → ([], compile e, []) ⟹ₙᵥ ([], [v]) :=
-assume h,
-by rw ←big_subst_empty e at h; exact big_subst_sound h
+λ h, big_subst_sound $ eq.subst (big_subst_empty e) h
 
 theorem compile_sound (e : exp) (v : val) : 
     e ⟹ v
